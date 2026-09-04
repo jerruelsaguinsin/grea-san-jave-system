@@ -1,137 +1,255 @@
-function addCustomer() {
 
-    // Create the popup
-    var popup = document.createElement("div");
+        function addCustomer() {
 
-    popup.style.position = "fixed";
-    popup.style.top = "0";
-    popup.style.left = "0";
-    popup.style.width = "100%";
-    popup.style.height = "100%";
-    popup.style.backgroundColor = "rgba(0,0,0,0.5)";
-    popup.style.display = "flex";
-    popup.style.justifyContent = "center";
-    popup.style.alignItems = "center";
+            document.getElementById("customer-modal").hidden = false;
 
+            document.getElementById("name").focus();
 
-    // Create the form box
-    var form = document.createElement("div");
-
-    form.style.backgroundColor = "#FBFAEC";
-    form.style.padding = "25px";
-    form.style.width = "400px";
-    form.style.border = "1px solid #333";
-
-
-    // Title
-    form.innerHTML = `
-        <h2>New customer</h2>
-
-        <label>FULL NAME</label><br>
-        <input type="text" id="name" placeholder="e.g. Mika Reyes"
-        style="width:100%; padding:10px; box-sizing:border-box;"><br><br>
-
-        <label>CONTACT NUMBER</label><br>
-        <input type="text" id="contact" placeholder="09xx xxx xxxx"
-        style="width:100%; padding:10px; box-sizing:border-box;"><br><br>
-
-        <label>EMAIL ADDRESS</label><br>
-        <input type="email" id="email" placeholder="example@email.com"
-        style="width:100%; padding:10px; box-sizing:border-box;"><br><br>
-
-        <label>ORDER DATE</label><br>
-        <input type="date" id="date"
-        style="width:100%; padding:10px; box-sizing:border-box;"><br><br>
-
-        <label>NOTES</label><br>
-        <textarea id="notes" placeholder="Preferences, recurring requests..."
-        style="width:100%; height:70px; box-sizing:border-box;"></textarea>
-
-        <br><br>
-
-        <button id="cancel">Cancel</button>
-        <button id="save">Add customer</button>
-    `;
-
-
-    popup.appendChild(form);
-    document.body.appendChild(popup);
-
-
-    // Cancel button
-    document.getElementById("cancel").onclick = function() {
-        popup.remove();
-    };
-
-
-    // Add customer button
-    document.getElementById("save").onclick = function() {
-
-        var name = document.getElementById("name").value;
-        var contact = document.getElementById("contact").value;
-        var email = document.getElementById("email").value;
-        var date = document.getElementById("date").value;
-        var notes = document.getElementById("notes").value;
-
-
-        if (name == "") {
-            alert("Please enter customer name.");
-            return;
-        }
-
-        if (!email.match(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)) {
-            alert("Please enter a valid email address.");
-            return;
-        }
-
-        if (!contact.match(/^[0-9]{10,11}$/)) {
-            alert("Please enter a valid contact number.");
-            return;
         }
 
 
-        // Get table
-        var table = document.getElementById("customer-records");
+        function closeCustomerModal() {
 
-        // Create row
-        var row = table.insertRow();
+            document.getElementById("customer-modal").hidden = true;
 
+            clearForm();
 
-        // Create cells
-        var id = row.insertCell(0);
-        var customerName = row.insertCell(1);
-        var customerContact = row.insertCell(2);
-        var customerEmail = row.insertCell(3);
-        var orderDate = row.insertCell(4);
-        var customerNotes = row.insertCell(5);
-        var actions = row.insertCell(6);
+        }
 
 
-        // Put information
-        id.innerHTML = table.rows.length - 2;
-        customerName.innerHTML = name;
-        customerContact.innerHTML = contact;
-        customerEmail.innerHTML = email;
-        orderDate.innerHTML = date;
-        customerNotes.innerHTML = notes;
+        function clearForm() {
+
+            document.getElementById("name").value = "";
+            document.getElementById("contact").value = "";
+            document.getElementById("email").value = "";
+            document.getElementById("date").value = "";
+            document.getElementById("notes").value = "";
+
+        }
 
 
-        // Delete button
-        actions.innerHTML =
-            "<button onclick='deleteCustomer(this)'>Delete</button>";
+        function saveCustomer() {
+
+            var name =
+                document.getElementById("name").value.trim();
+
+            var contact =
+                document.getElementById("contact").value.trim();
+
+            var email =
+                document.getElementById("email").value.trim();
+
+            var date =
+                document.getElementById("date").value;
+
+            var notes =
+                document.getElementById("notes").value.trim();
 
 
-        // Close popup
-        popup.remove();
-    };
+            /* VALIDATION */
 
-}
+            if (name === "") {
+
+                alert("Please enter customer name.");
+
+                return;
+
+            }
 
 
-function deleteCustomer(button) {
+            if (
+                !email.match(
+                    /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+                )
+            ) {
 
-    var row = button.parentNode.parentNode;
+                alert("Please enter a valid email address.");
 
-    row.remove();
+                return;
 
-}
+            }
+
+
+            if (!contact.match(/^[0-9]{10,11}$/)) {
+
+                alert("Please enter a valid contact number.");
+
+                return;
+
+            }
+
+
+            /* TABLE */
+
+            var tableBody =
+                document.getElementById("customer-table-body");
+
+
+            /* Remove empty message */
+
+            var emptyRow =
+                document.getElementById("empty-row");
+
+            if (emptyRow) {
+
+                emptyRow.remove();
+
+            }
+
+
+            /* Create row */
+
+            var row =
+                tableBody.insertRow();
+
+
+            /* Customer ID */
+
+            var idCell =
+                row.insertCell(0);
+
+            var customerCount =
+                tableBody.rows.length;
+
+            idCell.className = "id-cell";
+
+            idCell.textContent =
+                "CUS-" +
+                String(customerCount).padStart(3, "0");
+
+
+            /* Customer Name */
+
+            var nameCell =
+                row.insertCell(1);
+
+            nameCell.textContent =
+                name;
+
+
+            /* Contact */
+
+            var contactCell =
+                row.insertCell(2);
+
+            contactCell.textContent =
+                contact;
+
+
+            /* Email */
+
+            var emailCell =
+                row.insertCell(3);
+
+            emailCell.textContent =
+                email;
+
+
+            /* Date */
+
+            var dateCell =
+                row.insertCell(4);
+
+            dateCell.textContent =
+                date || "-";
+
+
+            /* Notes */
+
+            var notesCell =
+                row.insertCell(5);
+
+            notesCell.textContent =
+                notes || "-";
+
+
+            /* Actions */
+
+            var actionsCell =
+                row.insertCell(6);
+
+            actionsCell.className =
+                "row-actions";
+
+
+            actionsCell.innerHTML = `
+
+                <button
+                    class="btn btn-danger btn-sm"
+                    onclick="deleteCustomer(this)">
+                    Delete
+                </button>
+
+            `;
+
+
+            /* Close */
+
+            closeCustomerModal();
+
+        }
+
+
+        function deleteCustomer(button) {
+
+            var row =
+                button.closest("tr");
+
+            row.remove();
+
+
+            /* Show empty message again */
+
+            var tableBody =
+                document.getElementById("customer-table-body");
+
+
+            if (tableBody.rows.length === 0) {
+
+                tableBody.innerHTML = `
+
+                    <tr class="empty-row" id="empty-row">
+
+                        <td colspan="7">
+                            No customer records yet.
+                            Click "Add Customer Record" to create one.
+                        </td>
+
+                    </tr>
+
+                `;
+
+            }
+
+        }
+
+
+        /* Close modal when clicking outside */
+
+        document
+            .getElementById("customer-modal")
+            .addEventListener("click", function(event) {
+
+                if (event.target === this) {
+
+                    closeCustomerModal();
+
+                }
+
+            });
+
+
+        /* ESC closes modal */
+
+        document.addEventListener("keydown", function(event) {
+
+            if (
+                event.key === "Escape" &&
+                !document.getElementById("customer-modal").hidden
+            ) {
+
+                closeCustomerModal();
+
+            }
+
+        });
