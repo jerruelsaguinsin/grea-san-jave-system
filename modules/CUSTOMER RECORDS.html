@@ -1,221 +1,625 @@
-
 <!DOCTYPE html>
-<html>
-    <head>
-        <title>CUSTOMER RECORDS</title>
-    </head>
-    <style>
-        body {
-            background: #FBFAEC;
-            font-family: Proxima Nova, sans-serif;
-            margin: 20px;
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>CUSTOMER RECORDS</title>
+
+    <link rel="stylesheet" href="CUSTOMER_RECORDS.css">
+</head>
+
+<body>
+
+    <div class="app-shell">
+
+        <aside class="sidebar">
+
+            <div class="sidebar-brand">
+
+                <div class="brand-mark">
+                    GS
+                </div>
+
+                <div class="brand-text">
+                    <div class="brand-name">
+                        GREA SAN JAVE
+                    </div>
+
+                    <div class="brand-tag">
+                        Crafts & Printing Services
+                    </div>
+                </div>
+
+            </div>
+
+
+            <nav class="sidebar-nav">
+
+                <button class="nav-item">
+                    <i>⌂</i>
+                    <span>Dashboard</span>
+                </button>
+
+                <button class="nav-item active">
+                    <i>♙</i>
+                    <span>Customer Records</span>
+                </button>
+
+                <button class="nav-item">
+                    <i>▣</i>
+                    <span>Orders</span>
+                </button>
+
+                <button class="nav-item">
+                    <i>▤</i>
+                    <span>Inventory</span>
+                </button>
+
+                <button class="nav-item">
+                    <i>▧</i>
+                    <span>Printers</span>
+                </button>
+
+                <button class="nav-item">
+                    <i>₱</i>
+                    <span>Price Calculator</span>
+                </button>
+
+                <button class="nav-item">
+                    <i>⌕</i>
+                    <span>Search</span>
+                </button>
+
+                <button class="nav-item">
+                    <i>◷</i>
+                    <span>Order Tracking</span>
+                </button>
+
+                <button class="nav-item">
+                    <i>▥</i>
+                    <span>Reports</span>
+                </button>
+
+            </nav>
+
+        </aside>
+
+
+        <!-- MAIN COLUMN -->
+        <div class="main-col">
+
+            <!-- TOPBAR -->
+            <header class="topbar">
+
+                <button class="icon-btn mobile-only">
+                    ☰
+                </button>
+
+                <h2 class="topbar-title">
+                    Customer Records
+                </h2>
+
+                <div class="topbar-right">
+
+                    <button class="icon-btn">
+                        🔔
+                        <span class="dot-badge"></span>
+                    </button>
+
+                    <div class="user-chip">
+
+                        <div class="user-avatar">
+                            A
+                        </div>
+
+                        <div class="user-meta">
+                            <span class="user-name">
+                                Administrator
+                            </span>
+
+                            <span class="user-role">
+                                Admin
+                            </span>
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </header>
+
+
+            <!--  CONTENT -->
+            <main class="content">
+
+                <div class="view">
+
+                    <!-- CUSTOMER RECORDS PANEL -->
+                    <section class="panel">
+
+                        <div class="panel-head">
+
+                            <h3>
+                                Customer Records
+                            </h3>
+
+                            <div class="panel-actions">
+
+                                <button
+                                    class="btn btn-primary"
+                                    onclick="addCustomer()">
+                                    + Add Customer Record
+                                </button>
+
+                            </div>
+
+                        </div>
+
+
+                        <p class="algo-note">
+                            <strong>Customer Management:</strong>
+                            Add, view, and manage customer information and order records.
+                        </p>
+
+
+                        <br>
+
+
+                        <!-- TABLE -->
+                        <div class="table-wrap">
+
+                            <table
+                                id="customer-records"
+                                class="data-table">
+
+                                <thead>
+
+                                    <tr>
+
+                                        <th>Customer ID</th>
+                                        <th>Customer Name</th>
+                                        <th>Contact Number</th>
+                                        <th>Email Address</th>
+                                        <th>Order Date</th>
+                                        <th>Notes</th>
+                                        <th>Actions</th>
+
+                                    </tr>
+
+                                </thead>
+
+
+                                <tbody id="customer-table-body">
+
+                                    <!-- Customer records will appear here -->
+
+                                    <tr class="empty-row" id="empty-row">
+
+                                        <td colspan="7">
+                                            No customer records yet.
+                                            Click "Add Customer Record" to create one.
+                                        </td>
+
+                                    </tr>
+
+                                </tbody>
+
+                            </table>
+
+                        </div>
+
+                    </section>
+
+                </div>
+
+            </main>
+
+        </div>
+
+    </div>
+
+
+    <!-- CUSTOMER MODAL -->
+
+    <div
+        id="customer-modal"
+        class="modal-overlay"
+        hidden>
+
+        <div class="modal">
+
+            <!-- MODAL HEADER -->
+            <div class="modal-head">
+
+                <h3>
+                    New Customer
+                </h3>
+
+                <button
+                    class="icon-btn"
+                    onclick="closeCustomerModal()">
+                    ×
+                </button>
+
+            </div>
+
+
+            <!-- MODAL BODY -->
+            <div class="modal-body">
+
+                <div class="form-grid">
+
+                    <!-- FULL NAME -->
+                    <div class="full">
+
+                        <label class="field-label">
+                            FULL NAME
+                        </label>
+
+                        <input
+                            type="text"
+                            id="name"
+                            class="input"
+                            placeholder="e.g. Johnny Dela Cruz">
+
+                        <div class="field-error">
+                            Please enter customer name.
+                        </div>
+
+                    </div>
+
+
+                    <!-- CONTACT -->
+                    <div>
+
+                        <label class="field-label">
+                            CONTACT NUMBER
+                        </label>
+
+                        <input
+                            type="text"
+                            id="contact"
+                            class="input"
+                            placeholder="09xx xxx xxxx">
+
+                    </div>
+
+
+                    <!-- EMAIL -->
+                    <div>
+
+                        <label class="field-label">
+                            EMAIL ADDRESS
+                        </label>
+
+                        <input
+                            type="email"
+                            id="email"
+                            class="input"
+                            placeholder="example@email.com">
+
+                    </div>
+
+
+                    <!-- ORDER DATE -->
+                    <div class="full">
+
+                        <label class="field-label">
+                            ORDER DATE
+                        </label>
+
+                        <input
+                            type="date"
+                            id="date"
+                            class="input">
+
+                    </div>
+
+
+                    <!-- NOTES -->
+                    <div class="full">
+
+                        <label class="field-label">
+                            NOTES
+                        </label>
+
+                        <textarea
+                            id="notes"
+                            class="input"
+                            placeholder="Preferences, recurring requests..."></textarea>
+
+                    </div>
+
+                </div>
+
+
+                <!-- BUTTONS -->
+                <div class="panel-actions" style="justify-content:flex-end; margin-top:20px;">
+
+                    <button
+                        class="btn btn-secondary"
+                        onclick="closeCustomerModal()">
+                        Cancel
+                    </button>
+
+                    <button
+                        class="btn btn-primary"
+                        onclick="saveCustomer()">
+                        Add Customer
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- JAVASCRIPT -->
+
+    <script>
+
+        function addCustomer() {
+
+            document.getElementById("customer-modal").hidden = false;
+
+            document.getElementById("name").focus();
+
         }
 
-        h3 {
-            color: #333;
-        }
 
-        hr {
-            border: 1px solid #ccc;
-            margin: 10px 0;
-        }
+        function closeCustomerModal() {
 
-        p {
-            font-size: 16px;
-            color: #555;
-        
-        }
-        button {
-            background-color: #191a19;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            cursor: pointer;
-            margin-top: 10px;
-            font-size: 16px;
-            font-weight: bold;
-        }
+            document.getElementById("customer-modal").hidden = true;
 
-        th {
-            font-size: 15px;
-            font-family: 'Courier New', Courier, monospace, sans-serif;
-        }
-        
+            clearForm();
 
-        
-    </style>
-    <body>
-        <h3>
-            GREA SAN JAVE CRAFTS AND PRINTING SERVICES
-        </h3>
-        <hr>
-        <h3>Customer Records</h3>
-<div class="popup" onclick="showPopup()">
-<button id="add-customer" onclick="addCustomer()">Add Customer Record</button>
-
-<em>Click the button to add a new customer record.</em>
-</div>
-        <br>
-        
-        <table id="customer-records" border="1" cellpadding="7" cellspacing="0">
-        <thead>
-            <tr>
-                <th> Customer ID </th>
-                <th> Customer Name </th>
-                <th> Contact Number</th>
-                <th> Email Address </th>
-                <th> Order Date </th>
-                <th> Notes </th>
-                <th> Actions </th>
-                </th>
-            </tr>
-            <!-- Add customer records here -->
-        </thead>
-        <tbody>
-            <!-- Customer records will be added here -->
-        </tbody>
-       
-        <script>
-
-function addCustomer() {
-
-    // Create the popup
-    var popup = document.createElement("div");
-
-    popup.style.position = "fixed";
-    popup.style.top = "0";
-    popup.style.left = "0";
-    popup.style.width = "100%";
-    popup.style.height = "100%";
-    popup.style.backgroundColor = "rgba(0,0,0,0.5)";
-    popup.style.display = "flex";
-    popup.style.justifyContent = "center";
-    popup.style.alignItems = "center";
-
-
-    // Create the form box
-    var form = document.createElement("div");
-
-    form.style.backgroundColor = "#FBFAEC";
-    form.style.padding = "25px";
-    form.style.width = "400px";
-    form.style.border = "1px solid #333";
-
-
-    // Title
-    form.innerHTML = `
-        <h2>New customer</h2>
-
-        <label>FULL NAME</label><br>
-        <input type="text" id="name" placeholder="e.g. Mika Reyes"
-        style="width:100%; padding:10px; box-sizing:border-box;"><br><br>
-
-        <label>CONTACT NUMBER</label><br>
-        <input type="text" id="contact" placeholder="09xx xxx xxxx"
-        style="width:100%; padding:10px; box-sizing:border-box;"><br><br>
-
-        <label>EMAIL ADDRESS</label><br>
-        <input type="email" id="email" placeholder="example@email.com"
-        style="width:100%; padding:10px; box-sizing:border-box;"><br><br>
-
-        <label>ORDER DATE</label><br>
-        <input type="date" id="date"
-        style="width:100%; padding:10px; box-sizing:border-box;"><br><br>
-
-        <label>NOTES</label><br>
-        <textarea id="notes" placeholder="Preferences, recurring requests..."
-        style="width:100%; height:70px; box-sizing:border-box;"></textarea>
-
-        <br><br>
-
-        <button id="cancel">Cancel</button>
-        <button id="save">Add customer</button>
-    `;
-
-
-    popup.appendChild(form);
-    document.body.appendChild(popup);
-
-
-    // Cancel button
-    document.getElementById("cancel").onclick = function() {
-        popup.remove();
-    };
-
-
-    // Add customer button
-    document.getElementById("save").onclick = function() {
-
-        var name = document.getElementById("name").value;
-        var contact = document.getElementById("contact").value;
-        var email = document.getElementById("email").value;
-        var date = document.getElementById("date").value;
-        var notes = document.getElementById("notes").value;
-
-
-        if (name == "") {
-            alert("Please enter customer name.");
-            return;
-        }
-
-        if (!email.match(/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/)) {
-            alert("Please enter a valid email address.");
-            return;
-        }
-
-        if (!contact.match(/^[0-9]{10,11}$/)) {
-            alert("Please enter a valid contact number.");
-            return;
         }
 
 
-        // Get table
-        var table = document.getElementById("customer-records");
+        function clearForm() {
 
-        // Create row
-        var row = table.insertRow();
+            document.getElementById("name").value = "";
+            document.getElementById("contact").value = "";
+            document.getElementById("email").value = "";
+            document.getElementById("date").value = "";
+            document.getElementById("notes").value = "";
 
-
-        // Create cells
-        var id = row.insertCell(0);
-        var customerName = row.insertCell(1);
-        var customerContact = row.insertCell(2);
-        var customerEmail = row.insertCell(3);
-        var orderDate = row.insertCell(4);
-        var customerNotes = row.insertCell(5);
-        var actions = row.insertCell(6);
+        }
 
 
-        // Put information
-        id.innerHTML = table.rows.length - 2;
-        customerName.innerHTML = name;
-        customerContact.innerHTML = contact;
-        customerEmail.innerHTML = email;
-        orderDate.innerHTML = date;
-        customerNotes.innerHTML = notes;
+        function saveCustomer() {
+
+            var name =
+                document.getElementById("name").value.trim();
+
+            var contact =
+                document.getElementById("contact").value.trim();
+
+            var email =
+                document.getElementById("email").value.trim();
+
+            var date =
+                document.getElementById("date").value;
+
+            var notes =
+                document.getElementById("notes").value.trim();
 
 
-        // Delete button
-        actions.innerHTML =
-            "<button onclick='deleteCustomer(this)'>Delete</button>";
+            /* VALIDATION */
+
+            if (name === "") {
+
+                alert("Please enter customer name.");
+
+                return;
+
+            }
 
 
-        // Close popup
-        popup.remove();
-    };
+            if (
+                !email.match(
+                    /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+                )
+            ) {
 
-}
+                alert("Please enter a valid email address.");
+
+                return;
+
+            }
 
 
-function deleteCustomer(button) {
+            if (!contact.match(/^[0-9]{10,11}$/)) {
 
-    var row = button.parentNode.parentNode;
+                alert("Please enter a valid contact number.");
 
-    row.remove();
+                return;
 
-}
+            }
 
-</script>
-        
-    </body>
+
+            /* TABLE */
+
+            var tableBody =
+                document.getElementById("customer-table-body");
+
+
+            /* Remove empty message */
+
+            var emptyRow =
+                document.getElementById("empty-row");
+
+            if (emptyRow) {
+
+                emptyRow.remove();
+
+            }
+
+
+            /* Create row */
+
+            var row =
+                tableBody.insertRow();
+
+
+            /* Customer ID */
+
+            var idCell =
+                row.insertCell(0);
+
+            var customerCount =
+                tableBody.rows.length;
+
+            idCell.className = "id-cell";
+
+            idCell.textContent =
+                "CUS-" +
+                String(customerCount).padStart(3, "0");
+
+
+            /* Customer Name */
+
+            var nameCell =
+                row.insertCell(1);
+
+            nameCell.textContent =
+                name;
+
+
+            /* Contact */
+
+            var contactCell =
+                row.insertCell(2);
+
+            contactCell.textContent =
+                contact;
+
+
+            /* Email */
+
+            var emailCell =
+                row.insertCell(3);
+
+            emailCell.textContent =
+                email;
+
+
+            /* Date */
+
+            var dateCell =
+                row.insertCell(4);
+
+            dateCell.textContent =
+                date || "-";
+
+
+            /* Notes */
+
+            var notesCell =
+                row.insertCell(5);
+
+            notesCell.textContent =
+                notes || "-";
+
+
+            /* Actions */
+
+            var actionsCell =
+                row.insertCell(6);
+
+            actionsCell.className =
+                "row-actions";
+
+
+            actionsCell.innerHTML = `
+
+                <button
+                    class="btn btn-danger btn-sm"
+                    onclick="deleteCustomer(this)">
+                    Delete
+                </button>
+
+            `;
+
+
+            /* Close */
+
+            closeCustomerModal();
+
+        }
+
+
+        function deleteCustomer(button) {
+
+            var row =
+                button.closest("tr");
+
+            row.remove();
+
+
+            /* Show empty message again */
+
+            var tableBody =
+                document.getElementById("customer-table-body");
+
+
+            if (tableBody.rows.length === 0) {
+
+                tableBody.innerHTML = `
+
+                    <tr class="empty-row" id="empty-row">
+
+                        <td colspan="7">
+                            No customer records yet.
+                            Click "Add Customer Record" to create one.
+                        </td>
+
+                    </tr>
+
+                `;
+
+            }
+
+        }
+
+
+        /* Close modal when clicking outside */
+
+        document
+            .getElementById("customer-modal")
+            .addEventListener("click", function(event) {
+
+                if (event.target === this) {
+
+                    closeCustomerModal();
+
+                }
+
+            });
+
+
+        /* ESC closes modal */
+
+        document.addEventListener("keydown", function(event) {
+
+            if (
+                event.key === "Escape" &&
+                !document.getElementById("customer-modal").hidden
+            ) {
+
+                closeCustomerModal();
+
+            }
+
+        });
+
+    </script>
+
+</body>
+
 </html>
