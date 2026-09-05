@@ -17,28 +17,57 @@ const ALLOWED_FILE_TYPES = ['application/pdf', 'application/msword', 'applicatio
  * @returns {{valid: boolean, isLarge: boolean, message: string}}
  */
 function validateFile(file) {
-  if (!file) return { valid: true, isLarge: false, message: 'No upload attached.' };
+  if (!file) {
+    return {
+      valid: true,
+      isLarge: false,
+      message: 'No upload attached.'
+    };
+  }
 
   const fileSize = Number(file.size) || 0;
   const fileType = file.type || '';
   const fileName = file.name || '';
-  const extensionIsAllowed = /\.(pdf|doc|docx)$/i.test(fileName);
-  const typeIsAllowed = !fileType || ALLOWED_FILE_TYPES.includes(fileType);
+
+  const extensionIsAllowed =
+    /\.(pdf|doc|docx)$/i.test(fileName);
+
+  const typeIsAllowed =
+    !fileType ||
+    ALLOWED_FILE_TYPES.includes(fileType);
 
   if (!extensionIsAllowed || !typeIsAllowed) {
-    return { valid: false, isLarge: false, message: 'Only PDF, DOC, and DOCX files are accepted.' };
+    return {
+      valid: false,
+      isLarge: false,
+      message: 'Only PDF, DOC, and DOCX files are accepted.'
+    };
   }
-  if (file.corrupted || file.isCorrupted || file.error || fileSize === 0) {
-    return { valid: false, isLarge: false, message: 'This file is missing or corrupted and must be uploaded again.' };
+
+  if (fileSize === 0) {
+    return {
+      valid: false,
+      isLarge: false,
+      message: 'This file is empty or cannot be processed. Please upload the file again.'
+    };
   }
+
   if (fileSize > MAX_FILE_SIZE_BYTES) {
-    return { valid: false, isLarge: true, message: 'This file is over the 25 MB limit.' };
+    return {
+      valid: false,
+      isLarge: true,
+      message: 'This file is over the 25 MB limit.'
+    };
   }
 
   return {
     valid: true,
-    isLarge: fileSize >= LARGE_FILE_SIZE_BYTES,
-    message: fileSize >= LARGE_FILE_SIZE_BYTES ? 'Large file accepted for managed processing.' : 'File is ready.'
+    isLarge:
+      fileSize >= LARGE_FILE_SIZE_BYTES,
+    message:
+      fileSize >= LARGE_FILE_SIZE_BYTES
+        ? 'Large file accepted for managed processing.'
+        : 'File is ready.'
   };
 }
 
