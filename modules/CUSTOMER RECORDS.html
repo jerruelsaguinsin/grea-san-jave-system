@@ -8,6 +8,7 @@
     <title>CUSTOMER RECORDS</title>
 
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 
 <body>
@@ -151,6 +152,12 @@
                                     class="btn btn-primary"
                                     onclick="addCustomer()">
                                     + Add Customer Record
+                                </button>
+
+                                <button
+                                    class="btn btn-primary"
+                                    onclick="exportCustomerLog()">
+                                    ⬇ Export Log
                                 </button>
 
                             </div>
@@ -359,242 +366,258 @@
     </div>
 
 
-    <!-- JAVASCRIPT -->
+        <!-- JAVASCRIPT -->
 
-    <script>
+        <script>
 
-        function addCustomer() {
+            function addCustomer() {
 
-            document.getElementById("customer-modal").hidden = false;
+                document.getElementById("customer-modal").hidden = false;
 
-            document.getElementById("name").focus();
-
-        }
-
-
-        function closeCustomerModal() {
-
-            document.getElementById("customer-modal").hidden = true;
-
-            clearForm();
-
-        }
-
-
-        function clearForm() {
-
-            document.getElementById("name").value = "";
-            document.getElementById("contact").value = "";
-            document.getElementById("email").value = "";
-            document.getElementById("date").value = "";
-            document.getElementById("notes").value = "";
-
-        }
-
-
-        function saveCustomer() {
-
-            var name =
-                document.getElementById("name").value.trim();
-
-            var contact =
-                document.getElementById("contact").value.trim();
-
-            var email =
-                document.getElementById("email").value.trim();
-
-            var date =
-                document.getElementById("date").value;
-
-            var notes =
-                document.getElementById("notes").value.trim();
-
-
-            /* VALIDATION */
-
-            if (name === "") {
-
-                alert("Please enter customer name.");
-
-                return;
+                document.getElementById("name").focus();
 
             }
 
 
-            if (
-                !email.match(
-                    /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
-                )
-            ) {
+            function closeCustomerModal() {
 
-                alert("Please enter a valid email address.");
+                document.getElementById("customer-modal").hidden = true;
 
-                return;
+                clearForm();
 
             }
 
 
-            if (!contact.match(/^[0-9]{10,11}$/)) {
+            function clearForm() {
 
-                alert("Please enter a valid contact number.");
-
-                return;
-
-            }
-
-
-            /* TABLE */
-
-            var tableBody =
-                document.getElementById("customer-table-body");
-
-
-            /* Remove empty message */
-
-            var emptyRow =
-                document.getElementById("empty-row");
-
-            if (emptyRow) {
-
-                emptyRow.remove();
+                document.getElementById("name").value = "";
+                document.getElementById("contact").value = "";
+                document.getElementById("email").value = "";
+                document.getElementById("date").value = "";
+                document.getElementById("notes").value = "";
 
             }
 
 
-            /* Create row */
+            function saveCustomer() {
 
-            var row =
-                tableBody.insertRow();
+                var name =
+                    document.getElementById("name").value.trim();
 
+                var contact =
+                    document.getElementById("contact").value.trim();
 
-            /* Customer ID */
+                var email =
+                    document.getElementById("email").value.trim();
 
-            var idCell =
-                row.insertCell(0);
+                var date =
+                    document.getElementById("date").value;
 
-            var customerCount =
-                tableBody.rows.length;
-
-            idCell.className = "id-cell";
-
-            idCell.textContent =
-                "CUS-" +
-                String(customerCount).padStart(3, "0");
+                var notes =
+                    document.getElementById("notes").value.trim();
 
 
-            /* Customer Name */
+                /* VALIDATION */
 
-            var nameCell =
-                row.insertCell(1);
+                if (name === "") {
 
-            nameCell.textContent =
-                name;
+                    alert("Please enter customer name.");
 
+                    return;
 
-            /* Contact */
-
-            var contactCell =
-                row.insertCell(2);
-
-            contactCell.textContent =
-                contact;
+                }
 
 
-            /* Email */
+                if (
+                    !email.match(
+                        /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+                    )
+                ) {
 
-            var emailCell =
-                row.insertCell(3);
+                    alert("Please enter a valid email address.");
 
-            emailCell.textContent =
-                email;
+                    return;
 
-
-            /* Date */
-
-            var dateCell =
-                row.insertCell(4);
-
-            dateCell.textContent =
-                date || "-";
+                }
 
 
-            /* Notes */
+                if (!contact.match(/^[0-9]{10,11}$/)) {
 
-            var notesCell =
-                row.insertCell(5);
+                    alert("Please enter a valid contact number.");
 
-            notesCell.textContent =
-                notes || "-";
+                    return;
 
-
-            /* Actions */
-
-            var actionsCell =
-                row.insertCell(6);
-
-            actionsCell.className =
-                "row-actions";
+                }
 
 
-            actionsCell.innerHTML = `
+                /* TABLE */
 
-                <button
-                    class="btn btn-danger btn-sm"
-                    onclick="deleteCustomer(this)">
-                    Delete
-                </button>
-
-            `;
+                var tableBody =
+                    document.getElementById("customer-table-body");
 
 
-            /* Close */
+                /* Remove empty message */
 
-            closeCustomerModal();
+                var emptyRow =
+                    document.getElementById("empty-row");
 
-        }
+                if (emptyRow) {
 
+                    emptyRow.remove();
 
-        function deleteCustomer(button) {
-
-            var row =
-                button.closest("tr");
-
-            row.remove();
+                }
 
 
-            /* Show empty message again */
+                /* Create row */
 
-            var tableBody =
-                document.getElementById("customer-table-body");
+                var row =
+                    tableBody.insertRow();
 
 
-            if (tableBody.rows.length === 0) {
+                /* Customer ID */
 
-                tableBody.innerHTML = `
+                var idCell =
+                    row.insertCell(0);
 
-                    <tr class="empty-row" id="empty-row">
+                var customerCount =
+                    tableBody.rows.length;
 
-                        <td colspan="7">
-                            No customer records yet.
-                            Click "Add Customer Record" to create one.
-                        </td>
+                idCell.className = "id-cell";
 
-                    </tr>
+                idCell.textContent =
+                    "CUS-" +
+                    String(customerCount).padStart(3, "0");
+
+
+                /* Customer Name */
+
+                var nameCell =
+                    row.insertCell(1);
+
+                nameCell.textContent =
+                    name;
+
+
+                /* Contact */
+
+                var contactCell =
+                    row.insertCell(2);
+
+                contactCell.textContent =
+                    contact;
+
+
+                /* Email */
+
+                var emailCell =
+                    row.insertCell(3);
+
+                emailCell.textContent =
+                    email;
+
+
+                /* Date */
+
+                var dateCell =
+                    row.insertCell(4);
+
+                dateCell.textContent =
+                    date || "-";
+
+
+                /* Notes */
+
+                var notesCell =
+                    row.insertCell(5);
+
+                notesCell.textContent =
+                    notes || "-";
+
+
+                /* Actions */
+
+                var actionsCell =
+                    row.insertCell(6);
+
+                actionsCell.className =
+                    "row-actions";
+
+
+                actionsCell.innerHTML = `
+
+                    <button
+                        class="btn btn-danger btn-sm"
+                        onclick="deleteCustomer(this)">
+                        Delete
+                    </button>
 
                 `;
 
+
+                /* Close */
+
+                closeCustomerModal();
+
             }
 
-        }
+
+            function deleteCustomer(button) {
+
+                var row =
+                    button.closest("tr");
+
+                row.remove();
 
 
-        /* Close modal when clicking outside */
+                /* Show empty message again */
 
-        document
-            .getElementById("customer-modal")
-            .addEventListener("click", function(event) {
+                var tableBody =
+                    document.getElementById("customer-table-body");
 
-                if (event.target === this) {
+
+                if (tableBody.rows.length === 0) {
+
+                    tableBody.innerHTML = `
+
+                        <tr class="empty-row" id="empty-row">
+
+                            <td colspan="7">
+                                No customer records yet.
+                                Click "Add Customer Record" to create one.
+                            </td>
+
+                        </tr>
+
+                    `;
+
+                }
+
+            }
+
+
+            /* Close modal when clicking outside */
+
+            document
+                .getElementById("customer-modal")
+                .addEventListener("click", function(event) {
+
+                    if (event.target === this) {
+
+                        closeCustomerModal();
+
+                    }
+
+                });
+
+
+            /* ESC closes modal */
+
+            document.addEventListener("keydown", function(event) {
+
+                if (
+                    event.key === "Escape" &&
+                    !document.getElementById("customer-modal").hidden
+                ) {
 
                     closeCustomerModal();
 
@@ -602,21 +625,55 @@
 
             });
 
+            function exportCustomerLog() {
 
-        /* ESC closes modal */
+        var tableBody =
+            document.getElementById("customer-table-body");
 
-        document.addEventListener("keydown", function(event) {
+        var rows =
+            Array.from(tableBody.querySelectorAll("tr"))
+                .filter(row => !row.classList.contains("empty-row"));
 
-            if (
-                event.key === "Escape" &&
-                !document.getElementById("customer-modal").hidden
-            ) {
+        var data = rows.map(function(row) {
 
-                closeCustomerModal();
+            var cells = row.querySelectorAll("td");
 
-            }
+            return {
+                "Customer ID": cells[0]?.textContent.trim() || "",
+                "Customer Name": cells[1]?.textContent.trim() || "",
+                "Contact Number": cells[2]?.textContent.trim() || "",
+                "Email Address": cells[3]?.textContent.trim() || "",
+                "Order Date": cells[4]?.textContent.trim() || "",
+                "Notes": cells[5]?.textContent.trim() || ""
+            };
 
         });
+
+        if (data.length === 0) {
+
+            data = [{ "Info": "No customer records yet." }];
+
+        }
+
+        var sheet =
+            XLSX.utils.json_to_sheet(data);
+
+        sheet["!cols"] = [
+            { wch: 12 }, { wch: 22 }, { wch: 16 },
+            { wch: 24 }, { wch: 14 }, { wch: 28 }
+        ];
+
+        var wb =
+            XLSX.utils.book_new();
+
+        XLSX.utils.book_append_sheet(wb, sheet, "Customer Records");
+
+        var fileStamp =
+            new Date().toISOString().replace(/[:.]/g, "-");
+
+        XLSX.writeFile(wb, "customer-records_" + fileStamp + ".xlsx");
+
+    }
 
     </script>
 
