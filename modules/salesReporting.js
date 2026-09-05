@@ -2,10 +2,17 @@
 // Module 14: Sales & Financial Reporting
 // Stores sales transactions and calculates total sales. The system traverses
 // each transaction and adds the individual amounts to produce a daily, weekly,
-// or monthly total. Report data is calculated in memory for now - swap it for
-// real database queries later without changing the reporting logic.
+// or monthly total, and only counts orders whose status is Completed.
+// Report data is calculated in memory for now - swap it for real database
+// queries later without changing the reporting logic.
 
-import { ORDER_STATUS } from '../constants.js';
+const ORDER_STATUS = {
+  QUEUED: 'Pending',
+  PRINTING: 'Printing',
+  DONE: 'Completed',
+  UNCLAIMED: 'Unclaimed',
+  CANCELLED: 'Cancelled'
+};
 
 /** Returns only completed orders, optionally limited to one calendar date. */
 function getCompletedOrders(orders = [], reportDate = null) {
