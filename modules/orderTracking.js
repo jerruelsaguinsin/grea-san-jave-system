@@ -2,8 +2,7 @@
 // Module 6: Order Status Tracking
 // Organizes printing orders according to their arrival sequence. The first
 // order added to the queue is the first order processed, while Rush orders can
-// be given priority when necessary. The shared status values follow the
-// business wording: Pending, Printing, Completed, and Cancelled.
+// be given priority when necessary.
 // Order data is stored in memory for now - swap it for database calls later
 // without changing the logic.
 
@@ -26,11 +25,6 @@ const ORDER_CHANNELS = {
   EMAIL: 'Email',
   IN_PERSON: 'In Person',
   BLUETOOTH: 'Bluetooth'
-};
-
-const QUEUE_TYPES = {
-  WALK_IN: 'walkIn',
-  ADVANCE: 'advance'
 };
 
 const ORDER_STATUS = {
@@ -78,7 +72,6 @@ function createOrder(orderDetails = {}) {
     copies,
     colorTier,
     isRush,
-    queueType: orderDetails.queueType || (isRush ? QUEUE_TYPES.ADVANCE : QUEUE_TYPES.WALK_IN),
     pricePerPage,
     totalPrice: pricePerPage * pages * copies,
     requiresDownPayment: Boolean(orderDetails.requiresDownPayment),
@@ -93,9 +86,48 @@ function createOrder(orderDetails = {}) {
   };
 }
 
-/** Returns the display number used on receipts and tickets. */
+/** Returns the display number used on receipts */
 function getOrderNumber(order) {
   return `GSJ-${order.orderId}`;
+}
+
+/** Creates rush and normal queues from pending orders. */
+function createQueues(orders = []) {
+  const sortByArrival = (first, second) => {
+    const arrivalDifference = new Date(first.dateAdded) - new Date(second.dateAdded);
+    return arrivalDifference || first.orderId - second.orderId;
+  };
+
+  return {
+    rushQueue: orders
+      .filter((order) => order.isRush && order.status === ORDER_STATUS.QUEUED)
+      .sort(sortByArrival),
+    normalQueue: orders
+      .filter((order) => !order.isRush && order.status === ORDER_STATUS.QUEUED)
+      .sort(sortByArrival)
+  };
+}
+
+/** Adds an order to its corresponding queue. */
+function enqueueOrder(order, queues) {
+  if (!order || !queues) return false;
+
+  if (order.isRush) queues.rushQueue.push(order);
+  else queues.normalQueue.push(order);
+
+  return true;
+}
+
+/** Returns the next rush order, or the next normal order when no rush order exists. */
+function getNextOrder(queues) {
+  if (!queues) return null;
+  return queues.rushQueue[0] || queues.normalQueue[0] || null;
+}
+
+/** Removes and returns the next order to process. */
+function dequeueOrder(queues) {
+  if (!queues) return null;
+  return queues.rushQueue.shift() || queues.normalQueue.shift() || null;
 }
 
 /**
@@ -121,12 +153,8 @@ function getPrintedOrders(orders = []) {
  * @returns {Array} queued, printing, or otherwise unfinished orders
  */
 function getUnprintedOrders(orders = []) {
-  return orders
-    .filter((order) => order.status === ORDER_STATUS.QUEUED || order.status === ORDER_STATUS.PRINTING)
-    .sort((first, second) => {
-      const arrivalDifference = new Date(first.dateAdded) - new Date(second.dateAdded);
-      return arrivalDifference || first.orderId - second.orderId;
-    });
+  const queues = createQueues(orders);
+  return [...queues.rushQueue, ...queues.normalQueue];
 }
 
 /**
@@ -173,6 +201,10 @@ function _resetForTests() {
 export {
   createOrder,
   getOrderNumber,
+  createQueues,
+  enqueueOrder,
+  getNextOrder,
+  dequeueOrder,
   getPrintedOrders,
   getUnprintedOrders,
   getPrintTrackingSnapshot,
