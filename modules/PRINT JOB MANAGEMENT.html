@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Print Job & Printer/Resource Management</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+
+<body>
+
+<div class="app-shell">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <div class="sidebar-brand">
+            <div class="brand-mark">GS</div>
+            <div class="brand-text">
+                <div class="brand-name">GREA SAN JAVE</div>
+                <div class="brand-tag">Crafts & Printing Services</div>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <button class="nav-item"><i>⌂</i><span>Dashboard</span></button>
+            <button class="nav-item"><i>♙</i><span>Customer Records</span></button>
+            <button class="nav-item"><i>▣</i><span>Orders</span></button>
+            <button class="nav-item"><i>▤</i><span>Inventory</span></button>
+            <button class="nav-item active"><i>▧</i><span>Printers</span></button>
+            <button class="nav-item"><i>₱</i><span>Price Calculator</span></button>
+            <button class="nav-item"><i>⌕</i><span>Search</span></button>
+            <button class="nav-item"><i>◷</i><span>Order Tracking</span></button>
+            <button class="nav-item"><i>▥</i><span>Reports</span></button>
+        </nav>
+
+    </aside>
+
+
+    <!-- MAIN COLUMN -->
+    <div class="main-col">
+
+        <!-- TOPBAR -->
+        <header class="topbar">
+            <button class="icon-btn mobile-only">☰</button>
+            <h2 class="topbar-title">Print Job & Printer/Resource Management</h2>
+            <div class="topbar-right">
+                <button class="icon-btn">🔔<span class="dot-badge"></span></button>
+                <div class="user-chip">
+                    <div class="user-avatar">A</div>
+                    <div class="user-meta">
+                        <span class="user-name">Administrator</span>
+                        <span class="user-role">Admin</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+
+        <!-- CONTENT -->
+        <main class="content">
+
+            <div class="view">
+
+                <!-- ========================= -->
+                <!-- PRINT QUEUE -->
+                <!-- ========================= -->
+
+                <section class="panel">
+
+                    <div class="panel-head">
+
+                        <h3>Print Queue</h3>
+
+                        <div class="panel-actions">
+                            <button class="btn btn-primary" onclick="openJobModal()">
+                                + Assign Print Job
+                            </button>
+                            <button class="btn btn-primary" onclick="exportLog()">
+                                ⬇ Export Log
+                            </button>
+                        </div>
+
+                    </div>
+
+                    <p class="algo-note">
+                        <strong>Print Management:</strong>
+                        Record, manage, and log print jobs, including their status and assigned printer.
+                    </p>
+
+                    <br>
+
+                    <div class="table-wrap">
+
+                        <table id="print-queue-table" class="data-table">
+
+                            <thead>
+                                <tr>
+                                    <th>Job</th>
+                                    <th>Customer</th>
+                                    <th>Copies</th>
+                                    <th>Printer Assigned</th>
+                                    <th>Details</th>
+                                    <th>Priority</th>
+                                    <th>Status</th>
+                                    <th>Note</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+
+                            <tbody id="queue-table-body">
+                                <tr class="empty-row" id="empty-row">
+                                    <td colspan="9">No print jobs yet. Click "Assign Print Job" to add.</td>
+                                </tr>
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </section>
+
+
+                <!-- ========================= -->
+                <!-- PRINTER AVAILABILITY -->
+                <!-- ========================= -->
+
+                <div style="display:flex; flex-wrap:wrap; gap:15px; margin:20px 0; width:100%;">
+
+                    <div class="printer-card" style="width:325px; min-height:100px; box-sizing:border-box;">
+                        <div class="printer-type">Total Printers</div>
+                        <div id="totalPrinters" style="font-size:28px;font-weight:bold;margin-top:10px;">0</div>
+                    </div>
+
+                    <div class="printer-card" style="width:325px; min-height:100px; box-sizing:border-box;">
+                        <div class="printer-type">Available</div>
+                        <div id="availablePrinters" style="font-size:28px;font-weight:bold;margin-top:10px;">0</div>
+                    </div>
+
+                    <div class="printer-card" style="width:325px; min-height:100px; box-sizing:border-box;">
+                        <div class="printer-type">Printing</div>
+                        <div id="printingPrinters" style="font-size:28px;font-weight:bold;margin-top:10px;">0</div>
+                    </div>
+
+                    <div class="printer-card" style="width:325px; min-height:100px; box-sizing:border-box;">
+                        <div class="printer-type">Unavailable</div>
+                        <div id="unavailablePrinters" style="font-size:28px;font-weight:bold;margin-top:10px;">0</div>
+                    </div>
+
+                </div>
+
+
+                <!-- ========================= -->
+                <!-- PRINTERS -->
+                <!-- ========================= -->
+
+                <h3 style="margin-top:25px;">Printers</h3>
+
+                <div id="printerContainer" style="display:flex; flex-wrap:wrap; gap:24px; align-items:flex-start; width:100%;">
+
+                    <div class="printer-card printer-item" data-printer="Printer 1 - Laser A" style="width:660px; min-height:150px; box-sizing:border-box;">
+                        <div class="printer-card-head">
+                            <div>
+                                <div class="printer-name">Printer 1 - Laser A</div>
+                                <div class="printer-type">Laser Printer</div>
+                            </div>
+                            <i>▧</i>
+                        </div>
+                        <label class="field-label">Status</label>
+                        <select class="input printer-status">
+                            <option>Idle</option>
+                            <option>Printing</option>
+                            <option>Offline</option>
+                            <option>Jammed</option>
+                        </select>
+                    </div>
+
+                    <div class="printer-card printer-item" data-printer="Printer 2 - Laser B" style="width:660px; min-height:150px; box-sizing:border-box;">
+                        <div class="printer-card-head">
+                            <div>
+                                <div class="printer-name">Printer 2 - Laser B</div>
+                                <div class="printer-type">Laser Printer</div>
+                            </div>
+                            <i>▧</i>
+                        </div>
+                        <label class="field-label">Status</label>
+                        <select class="input printer-status">
+                            <option>Idle</option>
+                            <option>Printing</option>
+                            <option>Offline</option>
+                            <option>Jammed</option>
+                        </select>
+                    </div>
+
+                    <div class="printer-card printer-item" data-printer="Printer 3 - Wider Format" style="width:660px; min-height:150px; box-sizing:border-box;">
+                        <div class="printer-card-head">
+                            <div>
+                                <div class="printer-name">Printer 3 - Wider Format</div>
+                                <div class="printer-type">Wide Format Printer</div>
+                            </div>
+                            <i>▧</i>
+                        </div>
+                        <label class="field-label">Status</label>
+                        <select class="input printer-status">
+                            <option>Idle</option>
+                            <option>Printing</option>
+                            <option>Offline</option>
+                            <option>Jammed</option>
+                        </select>
+                    </div>
+
+                    <div class="printer-card printer-item" data-printer="Printer 4 - Sublimation" style="width:660px; min-height:150px; box-sizing:border-box;">
+                        <div class="printer-card-head">
+                            <div>
+                                <div class="printer-name">Printer 4 - Sublimation</div>
+                                <div class="printer-type">Sublimation Printer</div>
+                            </div>
+                            <i>▧</i>
+                        </div>
+                        <label class="field-label">Status</label>
+                        <select class="input printer-status">
+                            <option>Idle</option>
+                            <option>Printing</option>
+                            <option>Offline</option>
+                            <option>Jammed</option>
+                        </select>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </main>
+
+    </div>
+
+</div>
+
+
+<!-- CREATE PRINT JOB MODAL -->
+<div id="jobModal" class="modal-overlay" style="display:none;">
+
+    <div class="modal">
+
+        <div class="modal-head">
+            <h3>Create Print Job</h3>
+            <button type="button" class="icon-btn" onclick="closeJobModal()">✕</button>
+        </div>
+
+        <div class="modal-body">
+
+            <label class="field-label">Customer Name</label>
+            <input type="text" id="customerName" class="input" placeholder="Enter customer name">
+
+            <label class="field-label" style="margin-top:15px;">Select Type</label>
+            <select id="printType" class="input" onchange="toggleOtherPrintingOption(this)">
+                <option value="Document Print">Document Print</option>
+                <option value="Bookbinding">Bookbinding</option>
+                <option value="Photo Print">Photo Print</option>
+                <option value="Sticker Printing">Sticker Printing</option>
+                <option value="Lamination">Lamination</option>
+                <option value="Sintra Board">Sintra Board</option>
+                <option value="Ref Magnet">Ref Magnet</option>
+                <option value="Card Stocks">Card Stocks</option>
+                <option value="Souvenirs">Souvenirs</option>
+                <option value="Key Chains">Key Chains</option>
+                <option value="Other">Others</option>
+            </select>
+
+            <label class="field-label" style="margin-top:15px;">Number of Copies</label>
+            <input type="number" id="copies" class="input" min="1" value="1">
+
+            <label class="field-label" style="margin-top:15px;">Printing Size</label>
+            <select id="printingSize" class="input" onchange="toggleOtherPrintingSize(this)">
+                <option value="A4">A4</option>
+                <option value="Legal/Long">Legal/Long</option>
+                <option value="Short/Letter">Short/Letter</option>
+                <option value="A3">A3</option>
+                <option value="A5">A5</option>
+                <option value="Other">Other</option>
+            </select>
+
+            <label class="field-label" style="margin-top:15px;">Assign Printer</label>
+            <select id="jobPrinter" class="input">
+                <option value="">Auto Assign</option>
+                <option value="Printer 1 - Laser A">Printer 1 - Laser A</option>
+                <option value="Printer 2 - Laser B">Printer 2 - Laser B</option>
+                <option value="Printer 3 - Wider Format">Printer 3 - Wider Format</option>
+                <option value="Printer 4 - Sublimation">Printer 4 - Sublimation</option>
+            </select>
+
+            <label class="field-label" style="margin-top:15px;">Priority</label>
+            <select id="priority" class="input">
+                <option value="Normal">Normal</option>
+                <option value="High">High</option>
+                <option value="Urgent">Urgent</option>
+            </select>
+
+            <label class="field-label" style="margin-top:15px;">Note (Optional)</label>
+            <textarea id="jobNote" class="input" placeholder="Add any remarks or special instructions..."></textarea>
+
+        </div>
+
+        <div class="modal-foot">
+            <button type="button" class="btn" onclick="closeJobModal()">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="createPrintJob()">Create Job</button>
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+    function toggleOtherPrintingSize(select) {
+        if (select.value === "Other") {
+            select.outerHTML = `
+                <input
+                    type="text"
+                    id="printingSize"
+                    class="input"
+                    placeholder="Enter printing size"
+                    required
+                    oninput="if (this.value.trim() === '0') this.value = '';"
+                    onblur="if (this.value.trim() === '0') this.value = '';">
+            `;
+        }
+    }
+
+    function toggleOtherPrintingOption(select) {
+        if (select.value === "Other") {
+            select.outerHTML = `
+                <input
+                    type="text"
+                    id="printType"
+                    class="input"
+                    placeholder="Enter Type"
+                    required
+                    oninput="if (this.value.trim() === '0') this.value = '';"
+                    onblur="if (this.value.trim() === '0') this.value = '';">
+            `;
+        }
+    }
+</script>
+
+<script src="PrintJobManagement.js"></script>
+
+</body>
+</html>
