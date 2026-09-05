@@ -69,7 +69,11 @@ function buildPeriodSummary(orders = [], period = 'daily', referenceDate = new D
   return {
     reportDate: reference.toISOString().slice(0, 10),
     totalOrders: completedOrders.length,
-    totalRevenue: completedOrders.reduce((sum, order) => sum + Number(order.totalPrice || 0), 0),
+    totalRevenue: completedOrders.reduce(
+      (sum, order) =>
+        sum + Number(order.totalPrice || 0),
+      0
+    ),
     totalRushOrders: completedOrders.filter((order) => order.isRush).length,
     isExamWeek
   };
