@@ -1,9 +1,11 @@
 // modules/fileHandling.js
 // Module 12: File Handling & Large File Management
 // Stores and organizes multiple files submitted for one order. The system can
-// traverse the list to check each file's name, size, type, and status, while
-// flagging missing, corrupted, or large files before printing. File metadata
-// is stored in memory for now - swap it for database/storage calls later.
+// traverse the list to check each file's name, size, type, and status while
+// flagging missing, corrupted, or large files before printing. Files are kept
+// in a list and paired with the order status flow: Pending, Printing,
+// Completed, and Cancelled. File metadata is stored in memory for now - swap
+// it for database/storage calls later.
 
 const MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024;
 const LARGE_FILE_SIZE_BYTES = 10 * 1024 * 1024;
