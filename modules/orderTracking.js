@@ -2,17 +2,50 @@
 // Module 6: Order Status Tracking
 // Organizes printing orders according to their arrival sequence. The first
 // order added to the queue is the first order processed, while Rush orders can
-// be given priority when necessary. Order data is stored in memory for now -
-// swap it for database calls later without changing the logic.
+// be given priority when necessary. The shared status values follow the
+// business wording: Pending, Printing, Completed, and Cancelled.
+// Order data is stored in memory for now - swap it for database calls later
+// without changing the logic.
 
-import {
-  COLOR_TIERS,
-  PRICE_PER_PAGE,
-  ORDER_CHANNELS,
-  QUEUE_TYPES,
-  ORDER_STATUS,
-  PAYMENT_STATUS
-} from '../constants.js';
+const COLOR_TIERS = {
+  BLACK_TEXT: 'Black Text',
+  MINIMAL_COLOR: 'Minimal Color',
+  SMALL_IMAGE: 'Small Image',
+  FULL_COLOR: 'Full Color'
+};
+
+const PRICE_PER_PAGE = {
+  [COLOR_TIERS.BLACK_TEXT]: 3,
+  [COLOR_TIERS.MINIMAL_COLOR]: 5,
+  [COLOR_TIERS.SMALL_IMAGE]: 10,
+  [COLOR_TIERS.FULL_COLOR]: 20
+};
+
+const ORDER_CHANNELS = {
+  MESSENGER: 'Messenger',
+  EMAIL: 'Email',
+  IN_PERSON: 'In Person',
+  BLUETOOTH: 'Bluetooth'
+};
+
+const QUEUE_TYPES = {
+  WALK_IN: 'walkIn',
+  ADVANCE: 'advance'
+};
+
+const ORDER_STATUS = {
+  QUEUED: 'Pending',
+  PRINTING: 'Printing',
+  DONE: 'Completed',
+  UNCLAIMED: 'Unclaimed',
+  CANCELLED: 'Cancelled'
+};
+
+const PAYMENT_STATUS = {
+  PENDING: 'pending',
+  DOWN_PAYMENT_PAID: 'downPaymentPaid',
+  FULLY_PAID: 'fullyPaid'
+};
 
 let nextOrderId = 1001;
 
