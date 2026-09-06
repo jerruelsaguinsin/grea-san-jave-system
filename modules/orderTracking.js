@@ -112,8 +112,17 @@ function createQueues(orders = []) {
 function enqueueOrder(order, queues) {
   if (!order || !queues) return false;
 
-  if (order.isRush) queues.rushQueue.push(order);
-  else queues.normalQueue.push(order);
+  const targetQueue = order.isRush ? queues.rushQueue : queues.normalQueue;
+  const updatedQueue = [];
+
+  for (let index = 0; index < targetQueue.length; index += 1) {
+    updatedQueue[index] = targetQueue[index];
+  }
+
+  updatedQueue[updatedQueue.length] = order;
+
+  if (order.isRush) queues.rushQueue = updatedQueue;
+  else queues.normalQueue = updatedQueue;
 
   return true;
 }
@@ -127,7 +136,21 @@ function getNextOrder(queues) {
 /** Removes and returns the next order to process. */
 function dequeueOrder(queues) {
   if (!queues) return null;
-  return queues.rushQueue.shift() || queues.normalQueue.shift() || null;
+
+  const activeQueue = queues.rushQueue.length > 0 ? queues.rushQueue : queues.normalQueue;
+  if (activeQueue.length === 0) return null;
+
+  const nextOrder = activeQueue[0];
+  const remainingQueue = [];
+
+  for (let index = 1; index < activeQueue.length; index += 1) {
+    remainingQueue[remainingQueue.length] = activeQueue[index];
+  }
+
+  if (queues.rushQueue.length > 0) queues.rushQueue = remainingQueue;
+  else queues.normalQueue = remainingQueue;
+
+  return nextOrder;
 }
 
 /**
