@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Print Job & Printer/Resource Management</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+ 
+<div class="app-shell">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+
+        <div class="sidebar-brand">
+            <div class="brand-mark">GS</div>
+            <div class="brand-text">
+                <div class="brand-name">GREA SAN JAVE</div>
+                <div class="brand-tag">Crafts & Printing Services</div>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <button class="nav-item"><i>⌂</i><span>Dashboard</span></button>
+            <button class="nav-item"><i>♙</i><span>Customer Records</span></button>
+            <button class="nav-item"><i>▣</i><span>Orders</span></button>
+            <button class="nav-item"><i>▤</i><span>Inventory</span></button>
+            <button class="nav-item active"><i>▧</i><span>Printers</span></button>
+            <button class="nav-item"><i>₱</i><span>Price Calculator</span></button>
+            <button class="nav-item"><i>⌕</i><span>Search</span></button>
+            <button class="nav-item"><i>◷</i><span>Order Tracking</span></button>
+            <button class="nav-item"><i>▥</i><span>Reports</span></button>
+        </nav>
+
+    </aside>
+ 
+ 
+    <!-- MAIN COLUMN -->
+    <div class="main-col">
+ 
+        <!-- TOPBAR -->
+        <header class="topbar">
+            <button class="icon-btn mobile-only" onclick="toggleMobileSidebar()" aria-label="Open menu">☰</button>
+            <h2 class="topbar-title">Inventory Management</h2>
+            <div class="topbar-right">
+                <button class="icon-btn" aria-label="Notifications">
+                    🔔
+                    <span class="dot-badge" id="bellDot" hidden></span>
+                </button>
+                <div class="user-chip">
+                    <div class="user-avatar">A</div>
+                    <div class="user-meta">
+                        <span class="user-name">Administrator</span>
+                        <span class="user-role">Admin</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+ 
+ 
+        <!-- CONTENT -->
+        <main class="content">
+ 
+            <div class="view">
+ 
+ 
+                <!-- ========================= -->
+                <!-- STOCK ROOM -->
+                <!-- ========================= -->
+ 
+                <section class="panel">
+ 
+                    <div class="panel-head">
+ 
+                        <h3>Stock Room</h3>
+ 
+                        <div class="panel-actions">
+ 
+                            <input
+                                type="search"
+                                id="stockSearch"
+                                class="input input-sm"
+                                placeholder="Search item..."
+                                style="width:200px;"
+                            >
+ 
+                            <button class="btn btn-primary" onclick="openStockModal()">
+                                + New Item
+                            </button>
+
+                            <button class="btn btn-primary" onclick="exportLogInventory()">
+                                ⬇ Export Log
+                            </button>                           
+ 
+                        </div>
+ 
+                    </div>
+ 
+                    <p class="algo-note">
+                        <strong>Inventory Management:</strong>
+                        Add, monitor, and update available supplies and their stock levels.
+                    </p>
+ 
+                    <br>
+ 
+                    <div class="table-wrap">
+ 
+                        <table class="data-table">
+ 
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Quantity</th>
+                                    <th>Unit</th>
+                                    <th>Threshold</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+ 
+                            <tbody id="stockTableBody">
+ 
+                                <tr class="empty-row" id="stockEmpty">
+                                    <td colspan="6">
+                                        No inventory items yet. Click "New Item" to add.
+                                    </td>
+                                </tr>
+ 
+                            </tbody>
+ 
+                        </table>
+ 
+                    </div>
+ 
+                </section>
+ 
+ 
+                <!-- ========================= -->
+                <!-- ORDER STATUS -->
+                <!-- ========================= -->
+ 
+                <section class="panel">
+ 
+                    <div class="panel-head">
+ 
+                        <h3>Order Status</h3>
+ 
+                        <div class="panel-actions">
+ 
+                            <button class="btn btn-primary" onclick="openOrderModal()">
+                                + New Order
+                            </button>
+ 
+                        </div>
+ 
+                    </div>
+ 
+                    <p class="algo-note">
+                        <strong>Order Management:</strong>
+                        Record customer orders and update their current status.
+                    </p>
+ 
+                    <br>
+ 
+                    <div class="table-wrap">
+ 
+                        <table class="data-table">
+ 
+                            <thead>
+                                <tr>
+                                    <th>Customer Name</th>
+                                    <th>Customer Type</th>
+                                    <th>Description</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+ 
+                            <tbody id="orderTableBody">
+ 
+                                <tr class="empty-row" id="orderEmpty">
+                                    <td colspan="5">
+                                        No orders yet. Click "New Order" to add.
+                                    </td>
+                                </tr>
+ 
+                            </tbody>
+ 
+                        </table>
+ 
+                    </div>
+ 
+                    <datalist id="customerOptions"></datalist>
+ 
+                </section>
+ 
+ 
+                <!-- ========================= -->
+                <!-- ACTIVE ALERTS -->
+                <!-- ========================= -->
+ 
+                <section class="panel">
+ 
+                    <div class="panel-head">
+                        <h3>All Active Alerts</h3>
+                    </div>
+ 
+                    <p class="algo-note">
+                        <strong>Inventory Alerts:</strong>
+                        Displays items that are low or out of stock.
+                    </p>
+ 
+                    <br>
+ 
+                    <div class="notif-list" id="alertsContainer"></div>
+ 
+                    <div class="empty-row" id="alertsEmpty" style="padding:20px 0;">
+                        No active alerts.
+                    </div>
+ 
+                </section>
+ 
+ 
+            </div>
+ 
+        </main>
+ 
+    </div>
+ 
+</div>
+ 
+ 
+<!-- ===================================================== -->
+<!-- STOCK MODAL -->
+<!-- ===================================================== -->
+ 
+<div id="stockModal" class="modal-overlay" hidden>
+ 
+    <div class="modal">
+ 
+        <div class="modal-head">
+ 
+            <h3>Add Inventory Item</h3>
+ 
+            <button type="button" class="icon-btn" onclick="closeStockModal()" aria-label="Close">✕</button>
+ 
+        </div>
+ 
+ 
+        <div class="modal-body">
+ 
+            <label class="field-label">Item Name</label>
+ 
+            <input
+                type="text"
+                id="stockName"
+                class="input"
+                placeholder="e.g. Glossy Photo Paper"
+            >
+ 
+            <div class="form-grid">
+ 
+                <div>
+                    <label class="field-label">Quantity</label>
+ 
+                    <input
+                        type="number"
+                        id="stockQuantity"
+                        class="input"
+                        min="0"
+                        placeholder="0"
+                    >
+                </div>
+ 
+                <div>
+                    <label class="field-label">Unit</label>
+ 
+                    <input
+                        type="text"
+                        id="stockUnit"
+                        class="input"
+                        placeholder="pcs, reams, bottles, etc."
+                    >
+                </div>
+ 
+            </div>
+ 
+            <label class="field-label">Reorder Threshold</label>
+ 
+            <input
+                type="number"
+                id="stockThreshold"
+                class="input"
+                min="0"
+                placeholder="5"
+            >
+ 
+        </div>
+ 
+ 
+        <div class="modal-foot">
+ 
+            <button type="button" class="btn btn-secondary" onclick="closeStockModal()">Cancel</button>
+ 
+            <button type="button" class="btn btn-primary" onclick="addStockItem()">Add Item</button>
+ 
+        </div>
+ 
+    </div>
+ 
+</div>
+ 
+ 
+<!-- ===================================================== -->
+<!-- ORDER MODAL -->
+<!-- ===================================================== -->
+ 
+<div id="orderModal" class="modal-overlay" hidden>
+ 
+    <div class="modal">
+ 
+        <div class="modal-head">
+ 
+            <h3>Create New Order</h3>
+ 
+            <button type="button" class="icon-btn" onclick="closeOrderModal()" aria-label="Close">✕</button>
+ 
+        </div>
+ 
+ 
+        <div class="modal-body">
+
+            <label class="field-label">Customer Name</label>
+
+            <input
+                type="text"
+                id="orderCustomer"
+                class="input"
+                placeholder="Enter customer name"
+                list="customerOptions"
+            >
+
+            <label class="field-label" style="margin-top:15px;">
+                Customer Type
+            </label>
+
+            <select id="customerType" class="input">
+                <option value="Walk-in">Walk-in</option>
+                <option value="Reserved/Ordered">Reserved/Ordered</option>
+            </select>
+
+            <label class="field-label">Order Description</label>
+
+            <input
+                type="text"
+                id="orderDescription"
+                class="input"
+                placeholder="e.g. 2x tarpaulin, 3x6 ft"
+            >
+
+            <label class="field-label">Status</label>
+
+            <select id="orderStatus" class="input">
+                <option value="Pending">Pending</option>
+                <option value="Ready">Ready for Pickup</option>
+                <option value="Claimed">Claimed</option>
+            </select>
+
+        </div>
+ 
+ 
+        <div class="modal-foot">
+ 
+            <button type="button" class="btn btn-secondary" onclick="closeOrderModal()">Cancel</button>
+ 
+            <button type="button" class="btn btn-primary" onclick="addOrder()">Create Order</button>
+            
+        </div>
+
+
+ 
+    </div>
+ 
+</div>
+ 
+ 
+<!-- TOAST HOST -->
+<div class="toast-host" id="toastHost"></div>
+ 
+ 
+<script src="InventoryManagement.js"></script>
+ 
+</body>
+</html>
