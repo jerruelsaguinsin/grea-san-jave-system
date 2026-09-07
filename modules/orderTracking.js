@@ -13,7 +13,6 @@ import {
   PAYMENT_METHODS,
   PAYMENT_STATUS,
   PRICE_PER_PAGE,
-  PROMO_TYPES,
   QUEUE_TYPES,
   SERVICE_OPTIONS,
   SERVICE_TYPES
@@ -54,10 +53,6 @@ function createOrder(orderDetails = {}) {
   const serviceOption = isKnownValue(requestedServiceOption, SERVICE_OPTIONS)
     ? requestedServiceOption
     : SERVICE_OPTIONS.NONE;
-  const requestedPromoType = orderDetails.promoType || PROMO_TYPES.NONE;
-  const promoType = isKnownValue(requestedPromoType, PROMO_TYPES)
-    ? requestedPromoType
-    : PROMO_TYPES.NONE;
   const dateAdded = orderDetails.dateAdded || new Date().toISOString();
   const pricePerPage = PRICE_PER_PAGE[colorTier] || PRICE_PER_PAGE[COLOR_TIERS.BLACK_TEXT];
   const baseTotalPrice = pricePerPage * pages * copies;
@@ -100,7 +95,6 @@ function createOrder(orderDetails = {}) {
     serviceOption,
     pricePerPage,
     baseTotalPrice,
-    promoType,
     discountAmount,
     totalPrice: baseTotalPrice - discountAmount,
     requiresDownPayment: Boolean(orderDetails.requiresDownPayment),
