@@ -6,21 +6,32 @@
 // Report data is calculated in memory for now - swap it for real database
 // queries later without changing the reporting logic.
 
-const ORDER_STATUS = {
-  QUEUED: 'Pending',
-  PRINTING: 'Printing',
-  DONE: 'Completed',
-  UNCLAIMED: 'Unclaimed',
-  CANCELLED: 'Cancelled'
-};
+import { ORDER_STATUS } from '../constants.js';
 
 /** Returns only completed orders, optionally limited to one calendar date. */
 function getCompletedOrders(orders = [], reportDate = null) {
-  return orders.filter((order) => {
-    if (order.status !== ORDER_STATUS.DONE) return false;
-    if (!reportDate) return true;
-    return String(order.dateCompleted || order.dateAdded).slice(0, 10) === reportDate;
-  });
+  const completedOrders = [];
+  for (let index = 0; index < orders.length; index += 1) {
+    const order = orders[index];
+    if (order.status !== ORDER_STATUS.DONE) continue;
+    if (!reportDate || String(order.dateCompleted || order.dateAdded).slice(0, 10) === reportDate) {
+      completedOrders[completedOrders.length] = order;
+    }
+  }
+  return completedOrders;
+}
+
+/** Returns payments received on a report date for Module 14 aggregation. */
+function getPaymentsForDate(payments = [], reportDate = null) {
+  const matchingPayments = [];
+  for (let index = 0; index < payments.length; index += 1) {
+    const payment = payments[index];
+    const paymentDate = String(payment.dateReceived || '').slice(0, 10);
+    if (!reportDate || paymentDate === reportDate) {
+      matchingPayments[matchingPayments.length] = payment;
+    }
+  }
+  return matchingPayments;
 }
 
 /**
@@ -60,21 +71,28 @@ function buildPeriodSummary(orders = [], period = 'daily', referenceDate = new D
 
   start.setHours(0, 0, 0, 0);
   end.setHours(23, 59, 59, 999);
-  const completedOrders = orders.filter((order) => {
-    if (order.status !== ORDER_STATUS.DONE) return false;
+  const completedOrders = [];
+  for (let index = 0; index < orders.length; index += 1) {
+    const order = orders[index];
+    if (order.status !== ORDER_STATUS.DONE) continue;
     const completedDate = new Date(order.dateCompleted || order.dateAdded);
-    return completedDate >= start && completedDate <= end;
-  });
+    if (completedDate >= start && completedDate <= end) {
+      completedOrders[completedOrders.length] = order;
+    }
+  }
+
+  let totalRevenue = 0;
+  let totalRushOrders = 0;
+  for (let index = 0; index < completedOrders.length; index += 1) {
+    totalRevenue += Number(completedOrders[index].totalPrice || 0);
+    if (completedOrders[index].isRush) totalRushOrders += 1;
+  }
 
   return {
     reportDate: reference.toISOString().slice(0, 10),
     totalOrders: completedOrders.length,
-    totalRevenue: completedOrders.reduce(
-      (sum, order) =>
-        sum + Number(order.totalPrice || 0),
-      0
-    ),
-    totalRushOrders: completedOrders.filter((order) => order.isRush).length,
+    totalRevenue,
+    totalRushOrders,
     isExamWeek
   };
 }
@@ -101,6 +119,7 @@ function formatCurrency(amount) {
 
 export {
   getCompletedOrders,
+  getPaymentsForDate,
   buildSalesReport,
   buildPeriodSummary,
   generateDailySummary,
