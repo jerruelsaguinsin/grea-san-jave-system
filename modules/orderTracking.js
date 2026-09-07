@@ -6,42 +6,27 @@
 // Order data is stored in memory for now - swap it for database calls later
 // without changing the logic.
 
-const COLOR_TIERS = {
-  BLACK_TEXT: 'Black Text',
-  MINIMAL_COLOR: 'Minimal Color',
-  SMALL_IMAGE: 'Small Image',
-  FULL_COLOR: 'Full Color'
-};
-
-const PRICE_PER_PAGE = {
-  [COLOR_TIERS.BLACK_TEXT]: 3,
-  [COLOR_TIERS.MINIMAL_COLOR]: 5,
-  [COLOR_TIERS.SMALL_IMAGE]: 10,
-  [COLOR_TIERS.FULL_COLOR]: 20
-};
-
-const ORDER_CHANNELS = {
-  MESSENGER: 'Messenger',
-  EMAIL: 'Email',
-  IN_PERSON: 'In Person',
-  BLUETOOTH: 'Bluetooth'
-};
-
-const ORDER_STATUS = {
-  QUEUED: 'Pending',
-  PRINTING: 'Printing',
-  DONE: 'Completed',
-  UNCLAIMED: 'Unclaimed',
-  CANCELLED: 'Cancelled'
-};
-
-const PAYMENT_STATUS = {
-  PENDING: 'pending',
-  DOWN_PAYMENT_PAID: 'downPaymentPaid',
-  FULLY_PAID: 'fullyPaid'
-};
+import {
+  COLOR_TIERS,
+  ORDER_CHANNELS,
+  ORDER_STATUS,
+  PAYMENT_METHODS,
+  PAYMENT_STATUS,
+  PRICE_PER_PAGE,
+  PROMO_TYPES,
+  QUEUE_TYPES,
+  SERVICE_OPTIONS,
+  SERVICE_TYPES
+} from '../constants.js';
 
 let nextOrderId = 1001;
+
+function isKnownValue(value, values) {
+  for (const key in values) {
+    if (values[key] === value) return true;
+  }
+  return false;
+}
 
 /**
  * Creates a complete order using the shared schema field names.
@@ -52,10 +37,48 @@ function createOrder(orderDetails = {}) {
   // Normalize form values once so every module receives the same data types.
   const pages = Number(orderDetails.pages) || 1;
   const copies = Number(orderDetails.copies) || 1;
-  const colorTier = orderDetails.colorTier || COLOR_TIERS.BLACK_TEXT;
+  const requestedColorTier = orderDetails.colorTier || COLOR_TIERS.BLACK_TEXT;
+  const colorTier = isKnownValue(requestedColorTier, COLOR_TIERS)
+    ? requestedColorTier
+    : COLOR_TIERS.BLACK_TEXT;
   const isRush = Boolean(orderDetails.isRush);
+  const requestedQueueType = orderDetails.queueType || QUEUE_TYPES.WALK_IN;
+  const queueType = isKnownValue(requestedQueueType, QUEUE_TYPES)
+    ? requestedQueueType
+    : QUEUE_TYPES.WALK_IN;
+  const requestedServiceType = orderDetails.serviceType || SERVICE_TYPES.DOCUMENT_PRINTING;
+  const serviceType = isKnownValue(requestedServiceType, SERVICE_TYPES)
+    ? requestedServiceType
+    : SERVICE_TYPES.DOCUMENT_PRINTING;
+  const requestedServiceOption = orderDetails.serviceOption || SERVICE_OPTIONS.NONE;
+  const serviceOption = isKnownValue(requestedServiceOption, SERVICE_OPTIONS)
+    ? requestedServiceOption
+    : SERVICE_OPTIONS.NONE;
+  const requestedPromoType = orderDetails.promoType || PROMO_TYPES.NONE;
+  const promoType = isKnownValue(requestedPromoType, PROMO_TYPES)
+    ? requestedPromoType
+    : PROMO_TYPES.NONE;
   const dateAdded = orderDetails.dateAdded || new Date().toISOString();
   const pricePerPage = PRICE_PER_PAGE[colorTier] || PRICE_PER_PAGE[COLOR_TIERS.BLACK_TEXT];
+  const baseTotalPrice = pricePerPage * pages * copies;
+  const requestedDiscount = Number(orderDetails.discountAmount) || 0;
+  const discountAmount = Math.max(0, Math.min(requestedDiscount, baseTotalPrice));
+  const requestedFileChannel = orderDetails.fileChannel || ORDER_CHANNELS.IN_PERSON;
+  const fileChannel = isKnownValue(requestedFileChannel, ORDER_CHANNELS)
+    ? requestedFileChannel
+    : ORDER_CHANNELS.IN_PERSON;
+  const requestedPaymentMethod = orderDetails.paymentMethod || PAYMENT_METHODS.CASH;
+  const paymentMethod = isKnownValue(requestedPaymentMethod, PAYMENT_METHODS)
+    ? requestedPaymentMethod
+    : PAYMENT_METHODS.CASH;
+  const requestedPaymentStatus = orderDetails.paymentStatus || PAYMENT_STATUS.PENDING;
+  const paymentStatus = isKnownValue(requestedPaymentStatus, PAYMENT_STATUS)
+    ? requestedPaymentStatus
+    : PAYMENT_STATUS.PENDING;
+  const requestedStatus = orderDetails.status || ORDER_STATUS.QUEUED;
+  const status = isKnownValue(requestedStatus, ORDER_STATUS)
+    ? requestedStatus
+    : ORDER_STATUS.QUEUED;
 
   // Return one complete order that follows every field in the shared schema.
   return {
@@ -63,7 +86,7 @@ function createOrder(orderDetails = {}) {
     customerId: orderDetails.customerId || 1,
     customerName: orderDetails.customerName || '',
     fileName: orderDetails.fileName || '',
-    fileChannel: orderDetails.fileChannel || ORDER_CHANNELS.IN_PERSON,
+    fileChannel,
     fileCount: Number(orderDetails.fileCount) || 1,
     subject: orderDetails.subject || '',
     notes: orderDetails.notes || '',
@@ -72,13 +95,19 @@ function createOrder(orderDetails = {}) {
     copies,
     colorTier,
     isRush,
+    queueType,
+    serviceType,
+    serviceOption,
     pricePerPage,
-    totalPrice: pricePerPage * pages * copies,
+    baseTotalPrice,
+    promoType,
+    discountAmount,
+    totalPrice: baseTotalPrice - discountAmount,
     requiresDownPayment: Boolean(orderDetails.requiresDownPayment),
     downPaymentAmount: Number(orderDetails.downPaymentAmount) || 0,
-    paymentMethod: orderDetails.paymentMethod || '',
-    paymentStatus: orderDetails.paymentStatus || PAYMENT_STATUS.PENDING,
-    status: orderDetails.status || ORDER_STATUS.QUEUED,
+    paymentMethod,
+    paymentStatus,
+    status,
     printerId: orderDetails.printerId || null,
     dateAdded,
     dateCompleted: orderDetails.dateCompleted || null,
@@ -98,13 +127,37 @@ function createQueues(orders = []) {
     return arrivalDifference || first.orderId - second.orderId;
   };
 
+  const sortQueue = (queue) => {
+    const sortedQueue = [];
+    for (let index = 0; index < queue.length; index += 1) {
+      const order = queue[index];
+      let insertAt = sortedQueue.length;
+      for (let sortedIndex = 0; sortedIndex < sortedQueue.length; sortedIndex += 1) {
+        if (sortByArrival(order, sortedQueue[sortedIndex]) < 0) {
+          insertAt = sortedIndex;
+          break;
+        }
+      }
+      for (let shiftIndex = sortedQueue.length; shiftIndex > insertAt; shiftIndex -= 1) {
+        sortedQueue[shiftIndex] = sortedQueue[shiftIndex - 1];
+      }
+      sortedQueue[insertAt] = order;
+    }
+    return sortedQueue;
+  };
+
+  const rushOrders = [];
+  const normalOrders = [];
+  for (let index = 0; index < orders.length; index += 1) {
+    const order = orders[index];
+    if (order.status !== ORDER_STATUS.QUEUED) continue;
+    if (order.isRush) rushOrders[rushOrders.length] = order;
+    else normalOrders[normalOrders.length] = order;
+  }
+
   return {
-    rushQueue: orders
-      .filter((order) => order.isRush && order.status === ORDER_STATUS.QUEUED)
-      .sort(sortByArrival),
-    normalQueue: orders
-      .filter((order) => !order.isRush && order.status === ORDER_STATUS.QUEUED)
-      .sort(sortByArrival)
+    rushQueue: sortQueue(rushOrders),
+    normalQueue: sortQueue(normalOrders)
   };
 }
 
@@ -160,13 +213,25 @@ function dequeueOrder(queues) {
  * @returns {Array} completed orders
  */
 function getPrintedOrders(orders = []) {
-  return orders
-    .filter((order) => order.status === ORDER_STATUS.DONE)
-    .sort((first, second) => {
-      const firstDate = new Date(first.dateCompleted || first.dateAdded);
-      const secondDate = new Date(second.dateCompleted || second.dateAdded);
-      return secondDate - firstDate;
-    });
+  const printedOrders = [];
+  for (let index = 0; index < orders.length; index += 1) {
+    const order = orders[index];
+    if (order.status !== ORDER_STATUS.DONE) continue;
+    const orderDate = new Date(order.dateCompleted || order.dateAdded);
+    let insertAt = printedOrders.length;
+    for (let printedIndex = 0; printedIndex < printedOrders.length; printedIndex += 1) {
+      const printedDate = new Date(printedOrders[printedIndex].dateCompleted || printedOrders[printedIndex].dateAdded);
+      if (orderDate > printedDate) {
+        insertAt = printedIndex;
+        break;
+      }
+    }
+    for (let shiftIndex = printedOrders.length; shiftIndex > insertAt; shiftIndex -= 1) {
+      printedOrders[shiftIndex] = printedOrders[shiftIndex - 1];
+    }
+    printedOrders[insertAt] = order;
+  }
+  return printedOrders;
 }
 
 /**
@@ -177,7 +242,14 @@ function getPrintedOrders(orders = []) {
  */
 function getUnprintedOrders(orders = []) {
   const queues = createQueues(orders);
-  return [...queues.rushQueue, ...queues.normalQueue];
+  const unprintedOrders = [];
+  for (let index = 0; index < queues.rushQueue.length; index += 1) {
+    unprintedOrders[unprintedOrders.length] = queues.rushQueue[index];
+  }
+  for (let index = 0; index < queues.normalQueue.length; index += 1) {
+    unprintedOrders[unprintedOrders.length] = queues.normalQueue[index];
+  }
+  return unprintedOrders;
 }
 
 /**
