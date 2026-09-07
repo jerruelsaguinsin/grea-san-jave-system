@@ -7,9 +7,38 @@
 // Completed, and Cancelled. File metadata is stored in memory for now - swap
 // it for database/storage calls later.
 
+import { ORDER_CHANNELS } from '../constants.js';
+
 const MAX_FILE_SIZE_BYTES = 25 * 1024 * 1024;
 const LARGE_FILE_SIZE_BYTES = 10 * 1024 * 1024;
-const ALLOWED_FILE_TYPES = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+const ALLOWED_FILE_TYPES = [
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'image/jpeg',
+  'image/png'
+];
+
+function isKnownChannel(fileChannel) {
+  for (const key in ORDER_CHANNELS) {
+    if (ORDER_CHANNELS[key] === fileChannel) return true;
+  }
+  return false;
+}
+
+/** Returns the file-submission fields shared with the Order schema. */
+function getFileSubmissionDetails(order = {}) {
+  const fileChannel = isKnownChannel(order.fileChannel)
+    ? order.fileChannel
+    : ORDER_CHANNELS.IN_PERSON;
+  return {
+    orderId: order.orderId || null,
+    fileName: order.fileName || '',
+    fileChannel,
+    fileCount: Number(order.fileCount) || 0,
+    notes: order.notes || ''
+  };
+}
 
 /**
  * Checks a browser File object or a file metadata object.
@@ -30,17 +59,18 @@ function validateFile(file) {
   const fileName = file.name || '';
 
   const extensionIsAllowed =
-    /\.(pdf|doc|docx)$/i.test(fileName);
+    /\.(pdf|doc|docx|jpg|jpeg|png)$/i.test(fileName);
 
-  const typeIsAllowed =
-    !fileType ||
-    ALLOWED_FILE_TYPES.includes(fileType);
+  let typeIsAllowed = !fileType;
+  for (let index = 0; index < ALLOWED_FILE_TYPES.length; index += 1) {
+    if (ALLOWED_FILE_TYPES[index] === fileType) typeIsAllowed = true;
+  }
 
   if (!extensionIsAllowed || !typeIsAllowed) {
     return {
       valid: false,
       isLarge: false,
-      message: 'Only PDF, DOC, and DOCX files are accepted.'
+      message: 'Only PDF, DOC, DOCX, JPG, JPEG, and PNG files are accepted.'
     };
   }
 
@@ -78,9 +108,25 @@ function validateFile(file) {
  * @returns {Array} files sorted by filename
  */
 function organizeFiles(files = []) {
-  return Array.from(files)
-    .filter(Boolean)
-    .sort((first, second) => (first.name || '').localeCompare(second.name || '', undefined, { numeric: true, sensitivity: 'base' }));
+  const organizedFiles = [];
+  for (let index = 0; index < files.length; index += 1) {
+    const file = files[index];
+    if (!file) continue;
+    const fileName = file.name || '';
+    let insertAt = organizedFiles.length;
+    for (let organizedIndex = 0; organizedIndex < organizedFiles.length; organizedIndex += 1) {
+      const organizedName = organizedFiles[organizedIndex].name || '';
+      if (fileName.localeCompare(organizedName, undefined, { numeric: true, sensitivity: 'base' }) < 0) {
+        insertAt = organizedIndex;
+        break;
+      }
+    }
+    for (let shiftIndex = organizedFiles.length; shiftIndex > insertAt; shiftIndex -= 1) {
+      organizedFiles[shiftIndex] = organizedFiles[shiftIndex - 1];
+    }
+    organizedFiles[insertAt] = file;
+  }
+  return organizedFiles;
 }
 
 /**
@@ -91,11 +137,31 @@ function organizeFiles(files = []) {
  */
 function validateFileBatch(files = [], expectedFileCount = null) {
   const organizedFiles = organizeFiles(files);
-  const results = organizedFiles.map((file) => ({ file, ...validateFile(file) }));
-  const invalidFiles = results.filter((result) => !result.valid);
-  const validFiles = results.filter((result) => result.valid).map((result) => result.file);
-  const names = organizedFiles.map((file) => (file.name || '').toLowerCase());
-  const duplicateNames = [...new Set(names.filter((name, index) => name && names.indexOf(name) !== index))];
+  const invalidFiles = [];
+  const validFiles = [];
+  const names = [];
+  const duplicateNames = [];
+  for (let index = 0; index < organizedFiles.length; index += 1) {
+    const file = organizedFiles[index];
+    const result = validateFile(file);
+    if (result.valid) validFiles[validFiles.length] = file;
+    else invalidFiles[invalidFiles.length] = result;
+
+    const name = (file.name || '').toLowerCase();
+    if (!name) continue;
+    let alreadySeen = false;
+    for (let nameIndex = 0; nameIndex < names.length; nameIndex += 1) {
+      if (names[nameIndex] === name) alreadySeen = true;
+    }
+    if (alreadySeen) {
+      let alreadyDuplicate = false;
+      for (let duplicateIndex = 0; duplicateIndex < duplicateNames.length; duplicateIndex += 1) {
+        if (duplicateNames[duplicateIndex] === name) alreadyDuplicate = true;
+      }
+      if (!alreadyDuplicate) duplicateNames[duplicateNames.length] = name;
+    }
+    names[names.length] = name;
+  }
   const missingCount = expectedFileCount === null
     ? 0
     : Math.max(0, Number(expectedFileCount) - organizedFiles.length);
@@ -152,6 +218,7 @@ export {
   validateFile,
   organizeFiles,
   validateFileBatch,
+  getFileSubmissionDetails,
   getDownloadInfo,
   formatFileSize,
   getFileLimits
