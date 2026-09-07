@@ -3,11 +3,17 @@
 
 import { ORDER_STATUS, QUEUE_TYPES } from '../constants.js';
 
+/** Compares two orders by arrival time, then by order ID. */
 function sortByArrival(first, second) {
   const arrivalDifference = new Date(first.dateAdded) - new Date(second.dateAdded);
   return arrivalDifference || first.orderId - second.orderId;
 }
 
+/**
+ * Sorts a queue by arrival without using array helper methods.
+ * @param {Array} queue - orders that belong to one queue
+ * @returns {Array} orders sorted by arrival
+ */
 function sortQueue(queue) {
   // Insert each order into arrival order with indexed insertion.
   const sortedQueue = [];
@@ -28,6 +34,11 @@ function sortQueue(queue) {
   return sortedQueue;
 }
 
+/**
+ * Separates queued orders into rush and normal lanes.
+ * @param {Array} orders - existing orders
+ * @returns {{rushQueue: Array, normalQueue: Array}} separated queues
+ */
 function createQueues(orders = []) {
   // Module 6 only separates already-created orders into rush and normal lanes.
   const rushOrders = [];
@@ -45,6 +56,12 @@ function createQueues(orders = []) {
   };
 }
 
+/**
+ * Copies an order into its appropriate queue.
+ * @param {Object} order - order to enqueue
+ * @param {{rushQueue: Array, normalQueue: Array}} queues - queue lanes
+ * @returns {boolean} whether the order was enqueued
+ */
 function enqueueOrder(order, queues) {
   // Copy the selected lane before adding the order so the original array is not mutated.
   if (!order || !queues) return false;
@@ -60,11 +77,21 @@ function enqueueOrder(order, queues) {
   return true;
 }
 
+/**
+ * Gets the next rush order or normal order.
+ * @param {{rushQueue: Array, normalQueue: Array}} queues - queue lanes
+ * @returns {Object|null} next order, if available
+ */
 function getNextOrder(queues) {
   if (!queues) return null;
   return queues.rushQueue[0] || queues.normalQueue[0] || null;
 }
 
+/**
+ * Removes the next active order without using array removal methods.
+ * @param {{rushQueue: Array, normalQueue: Array}} queues - queue lanes
+ * @returns {Object|null} removed order, if available
+ */
 function dequeueOrder(queues) {
   // Remove the first active order by copying every later item one position forward.
   if (!queues) return null;
@@ -82,6 +109,11 @@ function dequeueOrder(queues) {
   return nextOrder;
 }
 
+/**
+ * Returns completed orders, newest completion first.
+ * @param {Array} orders - existing orders
+ * @returns {Array} completed orders
+ */
 function getPrintedOrders(orders = []) {
   const printedOrders = [];
   for (let index = 0; index < orders.length; index += 1) {
@@ -104,6 +136,11 @@ function getPrintedOrders(orders = []) {
   return printedOrders;
 }
 
+/**
+ * Returns queued orders in rush-first arrival order.
+ * @param {Array} orders - existing orders
+ * @returns {Array} queued orders
+ */
 function getUnprintedOrders(orders = []) {
   const queues = createQueues(orders);
   const unprintedOrders = [];
@@ -116,6 +153,11 @@ function getUnprintedOrders(orders = []) {
   return unprintedOrders;
 }
 
+/**
+ * Builds the printed and unprinted tracking collections.
+ * @param {Array} orders - existing orders
+ * @returns {{printedOrders: Array, unprintedOrders: Array}} tracking snapshot
+ */
 function getPrintTrackingSnapshot(orders = []) {
   return {
     printedOrders: getPrintedOrders(orders),
@@ -123,6 +165,12 @@ function getPrintTrackingSnapshot(orders = []) {
   };
 }
 
+/**
+ * Marks a queued order as printing on a printer.
+ * @param {Object} order - order to update
+ * @param {number|null} printerId - selected printer
+ * @returns {boolean} whether the order was updated
+ */
 function markOrderPrinting(order, printerId = null) {
   // Tracking changes only lifecycle fields; intake and pricing belong elsewhere.
   if (!order || order.status !== ORDER_STATUS.QUEUED) return false;
@@ -131,6 +179,11 @@ function markOrderPrinting(order, printerId = null) {
   return true;
 }
 
+/**
+ * Marks a printing order as completed.
+ * @param {Object} order - order to update
+ * @returns {boolean} whether the order was completed
+ */
 function completeOrder(order) {
   if (!order || order.status !== ORDER_STATUS.PRINTING) return false;
   order.status = ORDER_STATUS.DONE;
@@ -138,6 +191,12 @@ function completeOrder(order) {
   return true;
 }
 
+/**
+ * Cancels an order that has not completed.
+ * @param {Object} order - order to update
+ * @param {string|null} reason - cancellation or unclaimed reason
+ * @returns {boolean} whether the order was cancelled
+ */
 function cancelOrder(order, reason = null) {
   if (!order || order.status === ORDER_STATUS.DONE) return false;
   order.status = ORDER_STATUS.CANCELLED;
@@ -145,6 +204,12 @@ function cancelOrder(order, reason = null) {
   return true;
 }
 
+/**
+ * Updates the queue lane and matching rush flag.
+ * @param {Object} order - order to update
+ * @param {string} queueType - walk-in or advance queue type
+ * @returns {boolean} whether the queue type was updated
+ */
 function setQueueType(order, queueType) {
   if (!order || (queueType !== QUEUE_TYPES.WALK_IN && queueType !== QUEUE_TYPES.ADVANCE)) return false;
   order.queueType = queueType;
