@@ -1,11 +1,9 @@
 // modules/fileHandling.js
 // Module 12: File Handling & Large File Management
 // Stores and organizes multiple files submitted for one order. The system can
-// traverse the list to check each file's name, size, type, and status while
-// flagging missing, corrupted, or large files before printing. Files are kept
-// in a list and paired with the order status flow: Pending, Printing,
-// Completed, and Cancelled. File metadata is stored in memory for now - swap
-// it for database/storage calls later.
+// traverse the list to check each file's name, size, and type while flagging
+// missing, corrupted, or large files before printing. File metadata is stored
+// in memory for now - swap it for database/storage calls later.
 
 import { ORDER_CHANNELS } from '../constants.js';
 
@@ -108,6 +106,7 @@ function validateFile(file) {
  * @returns {Array} files sorted by filename
  */
 function organizeFiles(files = []) {
+  // Build a filename-sorted copy with indexed insertion.
   const organizedFiles = [];
   for (let index = 0; index < files.length; index += 1) {
     const file = files[index];
@@ -136,6 +135,7 @@ function organizeFiles(files = []) {
  * @returns {{files: Array, validFiles: Array, invalidFiles: Array, missingCount: number, duplicateNames: Array, readyToPrint: boolean, message: string}}
  */
 function validateFileBatch(files = [], expectedFileCount = null) {
+  // Validate each submitted file and collect duplicates without array helpers.
   const organizedFiles = organizeFiles(files);
   const invalidFiles = [];
   const validFiles = [];
